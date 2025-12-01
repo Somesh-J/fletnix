@@ -109,6 +109,18 @@ fletnix/
 
    Backend will be available at `http://localhost:8000`
 
+
+
+## 🌐 Production URLs
+
+**Frontend:**  
+https://frontend-production-e81f.up.railway.app
+
+**Backend API:**  
+https://backend-production-1549.up.railway.app/api
+
+---
+
 ### Frontend Setup
 
 1. **Navigate to frontend directory:**

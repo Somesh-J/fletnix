@@ -20,8 +20,21 @@ db = Database()
 
 async def connect_to_database():
     """Connect to MongoDB and create indexes."""
-    db.client = AsyncIOMotorClient(settings.mongodb_url)
+    # Add connection timeout to prevent hanging on slow connections
+    db.client = AsyncIOMotorClient(
+        settings.mongodb_url,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=5000,
+        socketTimeoutMS=10000
+    )
     db.db = db.client[settings.database_name]
+    
+    # Test connection with a quick ping
+    try:
+        await db.client.admin.command('ping')
+        print("✅ MongoDB ping successful")
+    except Exception as e:
+        print(f"⚠️  MongoDB ping failed (will retry on requests): {e}")
     
     # Create indexes (with error handling for disk space issues on free tiers)
     try:
