@@ -170,7 +170,7 @@ const ShowDetail = () => {
                 {show.description || 'No description available.'}
               </p>
 
-              {/* Genres */}
+              {/* Genres - visible to all */}
               {show.listed_in && (
                 <div className="mb-6">
                   <h3 className="text-gray-400 text-sm mb-2">Genres</h3>
@@ -247,6 +247,7 @@ const ShowDetail = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

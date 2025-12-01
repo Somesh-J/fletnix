@@ -6,6 +6,7 @@ from typing import Optional, List
 from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from fastapi import HTTPException, status
+import asyncio
 
 from app.models.show import (
     ShowResponse,
@@ -14,6 +15,7 @@ from app.models.show import (
     RecommendationResponse
 )
 from app.utils.helpers import parse_genres, is_adult_rating, calculate_pages
+from app.services.imdb_service import IMDBService
 
 
 class ShowService:
@@ -23,6 +25,44 @@ class ShowService:
         self.db = db
         self.collection = db.shows
         self.users_collection = db.users
+        self.imdb_service = IMDBService()
+    
+    async def _fetch_omdb_data(self, show: dict) -> dict:
+        """Fetch OMDB data for a show and cache it."""
+        # Check if we already have cached OMDB data
+        if show.get("omdb_poster") or show.get("omdb_fetched"):
+            return {
+                "poster": show.get("omdb_poster"),
+                "imdb_rating": show.get("omdb_rating")
+            }
+        
+        # Fetch from OMDB
+        try:
+            omdb_data = await self.imdb_service.get_movie_reviews(
+                title=show.get("title", ""),
+                year=show.get("release_year")
+            )
+            
+            # Cache the data in the database (fire and forget)
+            if omdb_data.poster or omdb_data.imdb_rating:
+                asyncio.create_task(
+                    self.collection.update_one(
+                        {"_id": show["_id"]},
+                        {"$set": {
+                            "omdb_poster": omdb_data.poster,
+                            "omdb_rating": omdb_data.imdb_rating,
+                            "omdb_fetched": True
+                        }}
+                    )
+                )
+            
+            return {
+                "poster": omdb_data.poster,
+                "imdb_rating": omdb_data.imdb_rating
+            }
+        except Exception as e:
+            print(f"Error fetching OMDB data: {e}")
+            return {"poster": None, "imdb_rating": None}
     
     async def get_shows(
         self,
@@ -31,7 +71,8 @@ class ShowService:
         show_type: Optional[str] = None,
         search: Optional[str] = None,
         genre: Optional[str] = None,
-        user_age: Optional[int] = None
+        user_age: Optional[int] = None,
+        kids_mode: bool = False
     ) -> ShowListResponse:
         """Get paginated list of shows with filters."""
         
@@ -58,6 +99,10 @@ class ShowService:
         if user_age is not None and user_age < 18:
             query["rating"] = {"$nin": ["R", "NC-17", "TV-MA"]}
         
+        # Kids mode - filter out all adult/mature content
+        if kids_mode:
+            query["rating"] = {"$in": ["G", "TV-G", "TV-Y", "TV-Y7", "TV-Y7-FV", "PG", "TV-PG"]}
+        
         # Calculate skip
         skip = (page - 1) * limit
         
@@ -68,9 +113,10 @@ class ShowService:
         cursor = self.collection.find(query).skip(skip).limit(limit)
         shows = await cursor.to_list(length=limit)
         
-        # Transform to response
-        show_responses = [
-            ShowResponse(
+        # Fetch OMDB data for shows (in parallel, limited to prevent rate limiting)
+        async def get_show_with_omdb(show):
+            omdb_data = await self._fetch_omdb_data(show)
+            return ShowResponse(
                 id=str(show["_id"]),
                 show_id=show.get("show_id", ""),
                 type=show.get("type", ""),
@@ -83,15 +129,18 @@ class ShowService:
                 rating=show.get("rating"),
                 duration=show.get("duration"),
                 listed_in=show.get("listed_in"),
-                description=show.get("description")
+                description=show.get("description"),
+                poster=omdb_data.get("poster"),
+                imdb_rating=omdb_data.get("imdb_rating")
             )
-            for show in shows
-        ]
+        
+        # Fetch OMDB data for all shows in parallel
+        show_responses = await asyncio.gather(*[get_show_with_omdb(show) for show in shows])
         
         total_pages = calculate_pages(total, limit)
         
         return ShowListResponse(
-            shows=show_responses,
+            shows=list(show_responses),
             total=total,
             page=page,
             pages=total_pages,
@@ -189,8 +238,10 @@ class ShowService:
         
         shows = await cursor.to_list(length=limit)
         
-        show_responses = [
-            ShowResponse(
+        # Fetch OMDB data for recommendations
+        async def get_show_with_omdb(show):
+            omdb_data = await self._fetch_omdb_data(show)
+            return ShowResponse(
                 id=str(show["_id"]),
                 show_id=show.get("show_id", ""),
                 type=show.get("type", ""),
@@ -203,13 +254,15 @@ class ShowService:
                 rating=show.get("rating"),
                 duration=show.get("duration"),
                 listed_in=show.get("listed_in"),
-                description=show.get("description")
+                description=show.get("description"),
+                poster=omdb_data.get("poster"),
+                imdb_rating=omdb_data.get("imdb_rating")
             )
-            for show in shows
-        ]
+        
+        show_responses = await asyncio.gather(*[get_show_with_omdb(show) for show in shows])
         
         return RecommendationResponse(
-            shows=show_responses,
+            shows=list(show_responses),
             based_on_genres=viewed_genres[:5]
         )
     
@@ -233,8 +286,10 @@ class ShowService:
         
         shows = await cursor.to_list(length=limit)
         
-        show_responses = [
-            ShowResponse(
+        # Fetch OMDB data for random recommendations
+        async def get_show_with_omdb(show):
+            omdb_data = await self._fetch_omdb_data(show)
+            return ShowResponse(
                 id=str(show["_id"]),
                 show_id=show.get("show_id", ""),
                 type=show.get("type", ""),
@@ -247,13 +302,15 @@ class ShowService:
                 rating=show.get("rating"),
                 duration=show.get("duration"),
                 listed_in=show.get("listed_in"),
-                description=show.get("description")
+                description=show.get("description"),
+                poster=omdb_data.get("poster"),
+                imdb_rating=omdb_data.get("imdb_rating")
             )
-            for show in shows
-        ]
+        
+        show_responses = await asyncio.gather(*[get_show_with_omdb(show) for show in shows])
         
         return RecommendationResponse(
-            shows=show_responses,
+            shows=list(show_responses),
             based_on_genres=[]
         )
     

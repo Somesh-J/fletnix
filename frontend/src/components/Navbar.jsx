@@ -1,19 +1,43 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { FiSearch, FiUser, FiLogOut, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Sync search input with URL search param when on home page
+  useEffect(() => {
+    if (location.pathname === '/') {
+      const urlSearch = searchParams.get('search') || '';
+      setSearchQuery(urlSearch);
+    }
+  }, [searchParams, location.pathname]);
+
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
+    if (location.pathname !== '/') {
+      // If not on home page, navigate to home with search param
+      if (searchQuery.trim()) {
+        navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      } else {
+        navigate('/');
+      }
+    } else {
+      // If on home page, just update the URL params
+      const newParams = new URLSearchParams(searchParams);
+      if (searchQuery.trim()) {
+        newParams.set('search', searchQuery.trim());
+      } else {
+        newParams.delete('search');
+      }
+      newParams.delete('page'); // Reset to page 1 when searching
+      setSearchParams(newParams);
     }
   };
 

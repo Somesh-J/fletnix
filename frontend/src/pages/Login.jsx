@@ -13,11 +13,14 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     
     if (!email || !password) {
+      setError('Please fill in all fields');
       toast.error('Please fill in all fields');
       return;
     }
@@ -29,7 +32,9 @@ const Login = () => {
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.response?.data?.detail || 'Invalid email or password');
+      const errorMessage = error.response?.data?.detail || 'Invalid email or password';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -49,6 +54,13 @@ const Login = () => {
         <div className="bg-netflix-dark/80 backdrop-blur-sm rounded-lg p-8 shadow-2xl">
           <h2 className="text-3xl font-bold text-white mb-6">Sign In</h2>
 
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-4 error-message" role="alert">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div>
@@ -62,6 +74,7 @@ const Login = () => {
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
                   className="w-full bg-gray-800 text-white pl-10 pr-4 py-3 rounded-lg border border-gray-700 focus:border-netflix-red focus:outline-none transition-colors"
                   placeholder="Enter your email"
                 />
@@ -80,6 +93,7 @@ const Login = () => {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                   className="w-full bg-gray-800 text-white pl-10 pr-12 py-3 rounded-lg border border-gray-700 focus:border-netflix-red focus:outline-none transition-colors"
                   placeholder="Enter your password"
                 />

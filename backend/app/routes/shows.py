@@ -29,6 +29,7 @@ async def get_shows(
     type: Optional[str] = Query(None, description="Filter by type: Movie or TV Show"),
     search: Optional[str] = Query(None, description="Search in title, cast, director"),
     genre: Optional[str] = Query(None, description="Filter by genre"),
+    kids_mode: bool = Query(False, description="Filter out R-rated and adult content"),
     current_user: Optional[TokenData] = Depends(get_current_user_optional),
     db: AsyncIOMotorDatabase = Depends(get_database)
 ):
@@ -40,6 +41,7 @@ async def get_shows(
     - **type**: Filter by "Movie" or "TV Show"
     - **search**: Search in title, cast, and director
     - **genre**: Filter by genre
+    - **kids_mode**: Filter out R-rated/TV-MA content (default: false)
     
     Note: Users under 18 will not see R-rated content.
     """
@@ -52,7 +54,8 @@ async def get_shows(
         show_type=type,
         search=search,
         genre=genre,
-        user_age=user_age
+        user_age=user_age,
+        kids_mode=kids_mode
     )
 
 

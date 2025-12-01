@@ -12,13 +12,23 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <App />
         <Toaster 
-          position="top-right"
+          position="top-center"
           toastOptions={{
             style: {
               background: '#333',
               color: '#fff',
+              fontSize: '16px',
+              padding: '16px 24px',
+              borderRadius: '12px',
+              maxWidth: '400px',
             },
             success: {
+              iconTheme: {
+                primary: '#E50914',
+                secondary: '#fff',
+              },
+            },
+            error: {
               iconTheme: {
                 primary: '#E50914',
                 secondary: '#fff',

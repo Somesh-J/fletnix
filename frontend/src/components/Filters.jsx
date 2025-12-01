@@ -1,4 +1,4 @@
-import { FiFilter, FiX } from 'react-icons/fi';
+import { FiFilter, FiX, FiShield } from 'react-icons/fi';
 
 const Filters = ({ 
   selectedType, 
@@ -6,11 +6,13 @@ const Filters = ({
   selectedGenre, 
   setSelectedGenre, 
   genres,
+  kidsMode,
+  setKidsMode,
   onClearFilters 
 }) => {
   const types = ['All', 'Movie', 'TV Show'];
 
-  const hasFilters = selectedType !== 'All' || selectedGenre;
+  const hasFilters = selectedType !== 'All' || selectedGenre || kidsMode;
 
   return (
     <div className="bg-netflix-dark/50 backdrop-blur-sm rounded-lg p-4 mb-6">
@@ -56,6 +58,24 @@ const Filters = ({
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Kids Mode Toggle */}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setKidsMode(!kidsMode)}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+              kidsMode
+                ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+                : 'bg-netflix-dark text-gray-300 hover:bg-gray-700 border border-gray-700'
+            }`}
+          >
+            <FiShield className={`w-4 h-4 ${kidsMode ? 'text-white' : 'text-gray-400'}`} />
+            <span className="text-sm font-medium">Kids</span>
+          </button>
+          {kidsMode && (
+            <span className="text-xs text-green-400">No R-rated content</span>
+          )}
         </div>
 
         {/* Clear Filters */}

@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
-import { FiPlay, FiInfo } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiPlay, FiInfo, FiStar } from 'react-icons/fi';
 
 const ShowCard = ({ show }) => {
+  const [imageError, setImageError] = useState(false);
+
   const getTypeColor = (type) => {
     return type === 'Movie' ? 'bg-blue-600' : 'bg-green-600';
   };
@@ -16,11 +19,20 @@ const ShowCard = ({ show }) => {
   return (
     <Link to={`/show/${show.id}`} className="block">
       <div className="show-card bg-netflix-dark rounded-lg overflow-hidden shadow-lg cursor-pointer group">
-        {/* Placeholder Image */}
-        <div className="relative h-48 bg-gradient-to-br from-netflix-red/20 to-netflix-dark flex items-center justify-center">
-          <span className="text-4xl font-bold text-white/20">
-            {show.title?.charAt(0) || 'F'}
-          </span>
+        {/* Poster Image */}
+        <div className="relative h-64 bg-gradient-to-br from-netflix-red/20 to-netflix-dark flex items-center justify-center overflow-hidden">
+          {show.poster && !imageError ? (
+            <img 
+              src={show.poster} 
+              alt={show.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <span className="text-6xl font-bold text-white/20">
+              {show.title?.charAt(0) || 'F'}
+            </span>
+          )}
           
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-4">
@@ -42,6 +54,14 @@ const ShowCard = ({ show }) => {
             <span className={`absolute top-2 right-2 ${getRatingColor(show.rating)} text-white text-xs px-2 py-1 rounded`}>
               {show.rating}
             </span>
+          )}
+
+          {/* IMDB Rating */}
+          {show.imdb_rating && (
+            <div className="absolute bottom-2 right-2 bg-black/80 text-yellow-500 text-xs px-2 py-1 rounded flex items-center gap-1">
+              <FiStar className="w-3 h-3" />
+              {show.imdb_rating}
+            </div>
           )}
         </div>
 

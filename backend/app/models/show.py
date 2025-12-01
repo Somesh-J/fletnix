@@ -26,6 +26,8 @@ class ShowBase(BaseModel):
 class ShowResponse(ShowBase):
     """Show response model."""
     id: str
+    poster: Optional[str] = None
+    imdb_rating: Optional[str] = None
     
     class Config:
         from_attributes = True

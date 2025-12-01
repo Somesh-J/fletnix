@@ -3,11 +3,10 @@ IMDB/OMDB service for fetching movie reviews and ratings.
 """
 
 import httpx
+import os
 from typing import Optional
 from app.config import get_settings
 from app.models.show import ShowReviewsResponse, ReviewResponse
-
-settings = get_settings()
 
 
 class IMDBService:
@@ -16,7 +15,9 @@ class IMDBService:
     BASE_URL = "http://www.omdbapi.com/"
     
     def __init__(self):
-        self.api_key = settings.omdb_api_key
+        # Get API key from settings (loaded fresh to ensure .env is read)
+        settings = get_settings()
+        self.api_key = settings.omdb_api_key or os.getenv("OMDB_API_KEY", "")
     
     async def get_movie_reviews(
         self,
@@ -42,7 +43,7 @@ class IMDBService:
         }
         
         if year:
-            params["y"] = year
+            params["y"] = str(year)
         
         try:
             async with httpx.AsyncClient() as client:

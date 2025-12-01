@@ -15,27 +15,36 @@ const Register = () => {
   const [age, setAge] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Check if passwords match
+  const passwordsMatch = !confirmPassword || password === confirmPassword;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     
     if (!email || !password || !confirmPassword || !age) {
+      setError('Please fill in all fields');
       toast.error('Please fill in all fields');
       return;
     }
 
     if (password !== confirmPassword) {
+      setError('Passwords do not match');
       toast.error('Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
+      setError('Password must be at least 6 characters');
       toast.error('Password must be at least 6 characters');
       return;
     }
 
     const ageNum = parseInt(age, 10);
     if (isNaN(ageNum) || ageNum < 1 || ageNum > 120) {
+      setError('Please enter a valid age');
       toast.error('Please enter a valid age');
       return;
     }
@@ -67,6 +76,13 @@ const Register = () => {
         <div className="bg-netflix-dark/80 backdrop-blur-sm rounded-lg p-8 shadow-2xl">
           <h2 className="text-3xl font-bold text-white mb-6">Sign Up</h2>
 
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-4 error-message" role="alert">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
@@ -80,6 +96,7 @@ const Register = () => {
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
                   className="w-full bg-gray-800 text-white pl-10 pr-4 py-3 rounded-lg border border-gray-700 focus:border-netflix-red focus:outline-none transition-colors"
                   placeholder="Enter your email"
                 />
@@ -100,6 +117,7 @@ const Register = () => {
                   onChange={(e) => setAge(e.target.value)}
                   min="1"
                   max="120"
+                  required
                   className="w-full bg-gray-800 text-white pl-10 pr-4 py-3 rounded-lg border border-gray-700 focus:border-netflix-red focus:outline-none transition-colors"
                   placeholder="Enter your age"
                 />
@@ -121,6 +139,8 @@ const Register = () => {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength="6"
                   className="w-full bg-gray-800 text-white pl-10 pr-12 py-3 rounded-lg border border-gray-700 focus:border-netflix-red focus:outline-none transition-colors"
                   placeholder="Create a password"
                 />
@@ -149,10 +169,14 @@ const Register = () => {
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-gray-800 text-white pl-10 pr-4 py-3 rounded-lg border border-gray-700 focus:border-netflix-red focus:outline-none transition-colors"
+                  required
+                  className={`w-full bg-gray-800 text-white pl-10 pr-4 py-3 rounded-lg border ${!passwordsMatch ? 'border-red-500' : 'border-gray-700'} focus:border-netflix-red focus:outline-none transition-colors`}
                   placeholder="Confirm your password"
                 />
               </div>
+              {!passwordsMatch && (
+                <p className="text-red-500 text-xs mt-1 error-message">Passwords do not match</p>
+              )}
             </div>
 
             {/* Submit Button */}
