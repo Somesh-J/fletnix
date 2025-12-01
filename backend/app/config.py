@@ -1,9 +1,13 @@
 """
 Configuration settings for FletNix backend.
+
+Explicit configuration following the Zen of Python:
+- Explicit is better than implicit.
 """
 
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import List
 
 
 class Settings(BaseSettings):
@@ -21,8 +25,11 @@ class Settings(BaseSettings):
     # OMDB API
     omdb_api_key: str = ""
     
-    # CORS
+    # CORS - Frontend URL for production
     frontend_url: str = "http://localhost:5173"
+    
+    # Environment
+    environment: str = "development"
     
     class Config:
         env_file = ".env"

@@ -62,3 +62,4 @@ playwright-report/
 # Logs
 *.log
 logs/
+frontend/package-lock.json

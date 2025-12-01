@@ -3,6 +3,11 @@ FletNix - Main FastAPI Application
 
 A Netflix content discovery API with authentication, search, 
 filtering, and personalized recommendations.
+
+Built following the Zen of Python:
+- Beautiful is better than ugly
+- Simple is better than complex
+- Readability counts
 """
 
 from fastapi import FastAPI
@@ -49,17 +54,22 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS
+# Configure CORS - Allow frontend origins for production and development
+allowed_origins = [
+    settings.frontend_url,
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
+# Add additional production origins if configured
+if settings.frontend_url not in allowed_origins:
+    allowed_origins.append(settings.frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.frontend_url,
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://fletnix.vercel.app"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

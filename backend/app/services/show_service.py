@@ -42,9 +42,13 @@ class ShowService:
         if show_type:
             query["type"] = show_type
         
-        # Search by title or cast
+        # Search by title or cast (using regex for compatibility without text index)
         if search:
-            query["$text"] = {"$search": search}
+            query["$or"] = [
+                {"title": {"$regex": search, "$options": "i"}},
+                {"cast": {"$regex": search, "$options": "i"}},
+                {"director": {"$regex": search, "$options": "i"}}
+            ]
         
         # Filter by genre
         if genre:

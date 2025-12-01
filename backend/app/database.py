@@ -23,21 +23,27 @@ async def connect_to_database():
     db.client = AsyncIOMotorClient(settings.mongodb_url)
     db.db = db.client[settings.database_name]
     
-    # Create text index for search functionality
-    await db.db.shows.create_index([
-        ("title", "text"),
-        ("cast", "text"),
-        ("director", "text"),
-        ("description", "text")
-    ])
-    
-    # Create index for efficient filtering
-    await db.db.shows.create_index("type")
-    await db.db.shows.create_index("rating")
-    await db.db.shows.create_index("listed_in")
-    
-    # Create index for users
-    await db.db.users.create_index("email", unique=True)
+    # Create indexes (with error handling for disk space issues on free tiers)
+    try:
+        # Create text index for search functionality
+        await db.db.shows.create_index([
+            ("title", "text"),
+            ("cast", "text"),
+            ("director", "text"),
+            ("description", "text")
+        ])
+        
+        # Create index for efficient filtering
+        await db.db.shows.create_index("type")
+        await db.db.shows.create_index("rating")
+        await db.db.shows.create_index("listed_in")
+        
+        # Create index for users
+        await db.db.users.create_index("email", unique=True)
+        
+        print("📑 Created indexes")
+    except Exception as e:
+        print(f"⚠️  Could not create indexes (continuing without): {e}")
     
     print("✅ Connected to MongoDB")
 
