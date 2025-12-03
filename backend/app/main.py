@@ -46,7 +46,6 @@ app = FastAPI(
     - IMDB reviews integration
     - Personalized recommendations
     
-    Built with ❤️ using FastAPI and MongoDB.
     """,
     version="1.0.0",
     lifespan=lifespan,
