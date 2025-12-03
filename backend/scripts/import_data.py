@@ -10,6 +10,7 @@ import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from pathlib import Path
 import sys
+from datetime import datetime
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -51,6 +52,20 @@ async def import_data():
             if i >= max_records:
                 break
                 
+            # Parse date_added string to datetime
+            date_added_str = row.get("date_added", "").strip()
+            date_added_parsed = None
+            if date_added_str:
+                try:
+                    # Format: "September 25, 2021"
+                    date_added_parsed = datetime.strptime(date_added_str, "%B %d, %Y")
+                except ValueError:
+                    try:
+                        # Try alternate format without leading zero: "September 5, 2021"
+                        date_added_parsed = datetime.strptime(date_added_str, "%B %d, %Y")
+                    except ValueError:
+                        date_added_parsed = None
+            
             # Clean and transform data
             show = {
                 "show_id": row.get("show_id", ""),
@@ -60,6 +75,7 @@ async def import_data():
                 "cast": row.get("cast") or None,
                 "country": row.get("country") or None,
                 "date_added": row.get("date_added") or None,
+                "date_added_parsed": date_added_parsed,  # Proper datetime for sorting
                 "release_year": int(row.get("release_year")) if row.get("release_year") else None,
                 "rating": row.get("rating") or None,
                 "duration": row.get("duration") or None,
@@ -85,6 +101,7 @@ async def import_data():
         await collection.create_index("rating")
         await collection.create_index("listed_in")
         await collection.create_index("show_id")
+        await collection.create_index([("date_added_parsed", -1)])  # Index for date sorting
         print("📑 Created indexes")
     except Exception as e:
         print(f"⚠️  Could not create indexes (may be disk space issue): {e}")

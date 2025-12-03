@@ -109,8 +109,9 @@ class ShowService:
         # Get total count
         total = await self.collection.count_documents(query)
         
-        # Get shows
-        cursor = self.collection.find(query).skip(skip).limit(limit)
+        # Get shows sorted by date_added_parsed (newest first)
+        cursor = self.collection.find(query).sort("date_added_parsed", -1).skip(skip).limit(limit)
+
         shows = await cursor.to_list(length=limit)
         
         # Fetch OMDB data for shows (in parallel, limited to prevent rate limiting)
@@ -136,6 +137,8 @@ class ShowService:
         
         # Fetch OMDB data for all shows in parallel
         show_responses = await asyncio.gather(*[get_show_with_omdb(show) for show in shows])
+        
+        # print(show_responses[0])
         
         total_pages = calculate_pages(total, limit)
         
