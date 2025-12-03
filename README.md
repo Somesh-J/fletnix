@@ -19,6 +19,16 @@ A Netflix content discovery application that helps users search, filter, and dis
 - **🎯 Genre Recommendations**: Personalized suggestions based on viewing history
 - **📱 Responsive UI**: Beautiful Tailwind CSS design for all devices
 
+## 🌐 Production URLs
+
+**Frontend:**  
+https://frontend-production-e81f.up.railway.app
+
+**Backend API:**  
+https://backend-production-1549.up.railway.app/api
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
@@ -109,17 +119,6 @@ fletnix/
 
    Backend will be available at `http://localhost:8000`
 
-
-
-## 🌐 Production URLs
-
-**Frontend:**  
-https://frontend-production-e81f.up.railway.app
-
-**Backend API:**  
-https://backend-production-1549.up.railway.app/api
-
----
 
 ### Frontend Setup
 
