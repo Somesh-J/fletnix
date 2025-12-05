@@ -22,10 +22,10 @@ A Netflix content discovery application that helps users search, filter, and dis
 ## 🌐 Production URLs
 
 **Frontend:**  
-https://frontend-production-e81f.up.railway.app
+https://frontend-production-e81f.up.railway.app/
 
 **Backend API:**  
-https://backend-production-1549.up.railway.app/api
+https://backend-production-1549.up.railway.app/
 
 ---
 
